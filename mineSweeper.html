@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MineSweeper</title>
+</head>
+<style>
+	#container{
+		width: 600px;
+		margin: 50px auto;
+	}
+	.content{
+		display: flex;
+		justify-content: center;
+	}
+    .area{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .innerContent{
+    	width: 33%;
+    	text-align: center;
+    }
+    #btnReset{
+    	width: 100px;
+    	height: 40px;
+    	font-size: 20px;
+    }
+    button:hover{
+    	cursor: pointer;
+    }
+    .text{
+        font-size: 20px;
+    }
+    .btnLevel{
+    	width: 180px;
+        height: 30px;
+        font-size: 17px;
+    }
+</style>
+<body>
+
+<div id="container">
+	<div id="board" style="display:flex; flex-direction:column; align-items: center;"></div><br>
+	<div class="content">
+		<div class="innerContent">
+			<button id="btnReset" onclick="reset()">reset</button>
+		</div>
+		<div class="innerContent">
+			<span class="text">💥 : <span id="xCnt"></span> / <span id="xNum"></span></span>
+		</div>
+		<div class="innerContent">
+			<span class="text" id="gameStatus"></span>
+		</div>
+	</div>
+	<br>
+	<div class="content">
+		<button class="btnLevel" onclick="level(1)">level 1</button>&nbsp;
+		<button class="btnLevel" onclick="level(2)">level 2</button>&nbsp;
+		<button class="btnLevel" onclick="level(3)">level 3</button>
+	</div>
+</div>
+
+<script>
+	// x : 지뢰
+	let board;
+    let xNum = -1;
+    let areaNum = -1;
+    // 게임보드 테이블 : row x col
+    let row = -1;
+    let col = -1;
+    let width = -1;
+    let height = -1;
+    let fontSize = -1;
+	window.onload = function() {
+        board = document.getElementById('board');
+        level(1);
+		init();
+        // 기본적인 우클릭 시 컨텍스트 메뉴창이 뜨는 이벤트를 막음
+        window.oncontextmenu = function() {
+        	return false;
+        }
+	}
+    
+    function init() {
+    	let innerBoard = '';
+    	for(let i=0; i<row; i++) {
+    		innerBoard += '<div>';
+    		for(let j=1; j<=col; j++) {
+        		innerBoard += '<div class="area" id="a'+ (i*col+j) +'" ';
+        		innerBoard += 'style="float:left; border:solid thin; width:'+width+'px; ';
+        		innerBoard += 'height:'+height+'px; font-size:'+fontSize+'px;"></div>';
+        	}
+        	innerBoard += '</div>';
+    	}
+		board.innerHTML = innerBoard;
+        areaNum = board.childElementCount * board.children[0].childElementCount;
+        document.getElementById('xCnt').innerHTML = xNum;
+        document.getElementById('xNum').innerHTML = xNum;
+		let xArr = new Array();
+		let isDup = false;
+        
+		for(let i=0; i<xNum; i++) {
+			isDup = false;
+			let xLoc = parseInt(Math.random()*areaNum + 1); // 지뢰 위치
+			for(let j=0; j<xArr.length; j++) {
+				if(xArr[j] == xLoc) {
+					i--;
+					isDup = true;
+					break;
+				}
+			}
+			if(!isDup)
+				xArr.push(xLoc);
+		}
+        
+        // board 내부의 전체 div에 초기 속성값을 설정하고 마우스 이벤트 지정
+        for(let i=1; i<=areaNum; i++) {
+        	let div = document.getElementById('a'+i);
+            
+            // 먼저 x(지뢰) 속성값을 0으로 초기화 하고
+            // 현재 위치가 xArr에 저장된 지뢰 위치와 맞으면 x 속성값을 1로 재설정
+            // 그 후 xArr의 지뢰 위치 원소를 하나 삭제함
+            div.setAttribute('x', 0);
+            for(let j=0; j<xArr.length; j++) {
+            	if(i == xArr[j]) {
+                	div.setAttribute('x', 1);
+                    xArr.splice(j, 1);
+                    break;
+                }
+            }
+            div.setAttribute('end', 0); // 게임 클리어를 판별할 때 사용
+            div.setAttribute('flag', 0); // 깃발 표시를 판별할 때 사용
+            div.style.backgroundColor = 'white';
+            div.innerHTML = '';
+            document.getElementById('gameStatus').innerHTML = '';
+        	div.addEventListener('click', leftClickEvent);
+            div.addEventListener('mouseup', rightClickEvent);
+            div.addEventListener('mouseover', hoverInEvent);
+            div.addEventListener('mouseout', hoverOutEvent);
+        }
+    }
+    
+    function leftClickEvent() {
+    	let div = event.target;
+        // 클릭한 곳에 깃발 표시가 있으면 클릭 불가(우클릭으로 깃발 해제하면 클릭 가능)
+        if(div.getAttribute('flag') == 1)
+        	return;
+        
+        // 한 번 정상 클릭된 곳은 더 이상 클릭 불가
+        div.removeEventListener('click', leftClickEvent);
+        div.removeEventListener('mouseup', rightClickEvent);
+        div.removeEventListener('mouseover', hoverInEvent);
+        div.removeEventListener('mouseout', hoverOutEvent);
+        
+        // 클릭한 위치가 지뢰일 때
+		if(div.getAttribute('x') == 1) {
+			div.style.backgroundColor = '#751919'; // 어두운 빨강
+            div.style.setProperty('cursor', 'context-menu');
+            removeEvent(); // 지뢰를 클릭하면 맵 전체 더 이상 클릭 불가(game over)
+            // 깃발 표시한 곳을 제외한 남은 지뢰를 모두 보여줌
+            for(let i=1; i<=areaNum; i++) {
+            	let content = document.getElementById('a'+i);
+        		if(content.getAttribute('flag') == 0 && content.getAttribute('x') == 1)
+                	content.innerHTML = '💥';
+                // 깃발 표시를 했지만 지뢰 위치가 아니면 X 표시
+                else if(content.getAttribute('flag') == 1 && content.getAttribute('x') == 0)
+                	content.innerHTML = '❌';
+        	}
+            document.getElementById('gameStatus').innerHTML = 'Game Over..';
+		} else {
+        	div.style.backgroundColor = '#A3B0A5'; // 회색
+            div.style.setProperty('cursor', 'context-menu');
+            div.setAttribute('end', 1);
+        	let locArr = new Array(); // 현재 클릭한 곳 기준 최대 8방향 위치의 div를 저장
+        	let currLoc = Number(div.id.substring(1, div.id.length)); // id의 a를 뺀 숫자만
+            let cnt = 0;
+            // ↖
+            let leftUp = currLoc-col-1;
+            if(leftUp > 0 && currLoc%col != 1) {
+            	locArr.push(document.getElementById('a'+ leftUp));
+            	if(document.getElementById('a'+ leftUp).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // ↑
+            let up = currLoc-col;
+            if(up > 0) {
+            	locArr.push(document.getElementById('a'+ up));
+            	if(document.getElementById('a'+ up).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // ↗
+            let rightUp = currLoc-col+1;
+            if(rightUp > 0 && currLoc%col != 0) {
+            	locArr.push(document.getElementById('a'+ rightUp));
+            	if(document.getElementById('a'+ rightUp).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // ←
+            let left = currLoc-1;
+            if(currLoc%col != 1) {
+            	locArr.push(document.getElementById('a'+ left));
+            	if(document.getElementById('a'+ left).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // →
+            let right = currLoc+1;
+            if(currLoc%col != 0) {
+            	locArr.push(document.getElementById('a'+ right));
+            	if(document.getElementById('a'+ right).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // ↙
+            let leftDown = currLoc+col-1;
+            if(leftDown < areaNum+1 && currLoc%col != 1) {
+            	locArr.push(document.getElementById('a'+ leftDown));
+            	if(document.getElementById('a'+ leftDown).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // ↓
+            let down = currLoc+col;
+            if(down < areaNum+1) {
+            	locArr.push(document.getElementById('a'+ down));
+            	if(document.getElementById('a'+ down).getAttribute('x') == 1)
+                	cnt++;
+            }
+            // ↘
+            let rightDown = currLoc+col+1;
+            if(rightDown < areaNum+1 && currLoc%col != 0) {
+            	locArr.push(document.getElementById('a'+ rightDown));
+            	if(document.getElementById('a'+ rightDown).getAttribute('x') == 1)
+                	cnt++;
+            }
+            
+            if(cnt != 0) {
+        		div.innerHTML = cnt;
+			} else { // 주변에 지뢰가 없으면 인접한 주변 지뢰개수가 0이 아닌 지역까지 클릭시킴
+            	for(let i=0; i<locArr.length; i++) {
+                	locArr[i].click();
+                }
+            }
+            endCheck();
+        } // 1st else
+    }
+    
+    function rightClickEvent() {
+    	// 브라우저에 따른 기본 우클릭 호출값
+    	let rClick = (event.which == 3) || (event.button == 2);
+        let xCntSpan = document.getElementById('xCnt');
+        if(rClick) {
+            let div = event.target;
+            if(div.getAttribute('flag') == 0) {
+				div.innerHTML = '🚩';
+            	div.setAttribute('flag', 1);
+                xCntSpan.innerHTML = Number(xCntSpan.innerHTML) - 1;
+            } else {
+                div.innerHTML = '';
+            	div.setAttribute('flag', 0);
+                xCntSpan.innerHTML = Number(xCntSpan.innerHTML) + 1; 
+            }
+            
+        }
+    }
+    
+    function hoverInEvent() {
+    	let div = event.target;
+        if(div.getAttribute('flag') != 1)
+        	div.style.setProperty('cursor', 'pointer');
+        div.style.setProperty('background-color', '#C0F5C7'); // 밝은 민트색
+    }
+    
+    function hoverOutEvent() {
+    	let div = event.target;
+        div.style.setProperty('cursor', 'context-menu');
+        div.style.setProperty('background-color', 'white');
+    }
+    
+    function removeEvent() {
+    	for(let i=1; i<=areaNum; i++) {
+        	let div = document.getElementById('a'+i);
+        	div.removeEventListener('click', leftClickEvent);
+            div.removeEventListener('mouseup', rightClickEvent);
+            div.removeEventListener('mouseover', hoverInEvent);
+			div.removeEventListener('mouseout', hoverOutEvent);
+        }
+    }
+    
+    function reset() {
+    	init();
+    }
+    
+    // 지뢰가 아닌 위치를 다 밝히면 게임 종료
+    function endCheck() {
+    	let cnt = 0;
+    	for(let i=1; i<=areaNum; i++) {
+            if(document.getElementById('a'+i).getAttribute('end') == 1) {
+            	cnt++;
+            }
+        }
+        if(cnt == areaNum - xNum) {
+        	removeEvent();
+            document.getElementById('gameStatus').innerHTML = 'Clear!';
+            for(let i=1; i<=areaNum; i++) {
+            	let div = document.getElementById('a'+i);
+            	if(div.getAttribute('end') == 0) { // 클릭되지 않은 위치만
+            		div.style.backgroundColor = '#DCE7DD'; // 밝은 회색
+            	}
+        	}
+        }
+    }
+    
+    function level(lev) {
+    	if(lev == 1)
+            setLevelValue(5, 7, 5, 70, 70, 45);
+        else if(lev == 2)
+            setLevelValue(8, 10, 15, 50, 50, 35);
+        else
+            setLevelValue(11, 13, 25, 40, 40, 27);
+    }
+    
+    function setLevelValue(rowVal, colVal, xNumVal, widthVal, heightVal, fontSizeVal) {
+    	row = rowVal;
+        col = colVal;
+		xNum = xNumVal;
+		width = widthVal;
+		height = heightVal;
+        fontSize = fontSizeVal;
+		reset();
+    }
+</script>
+</body>
+</html>
