@@ -7,9 +7,13 @@ ul {
     list-style: none;
 }
 
-.board {
+#container {
     width: 600px;
-    margin: 30px auto;
+    margin: 50px auto;
+}
+
+.board {
+    margin: 30px;
     display: flex;
     justify-content: center;
 }
@@ -25,9 +29,6 @@ ul {
 
 .board > ul > li > ul > li {
     outline: 1px solid #888;
-    width: 50px;
-    height: 50px;
-    font-size: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -38,7 +39,44 @@ ul {
     background: #8bdf88;
 }
 
+.flag:hover {
+    cursor: context-menu;
+}
+
 img {
-    width: 40px;
+    width: 80%;
+    height: 80%;
+}
+
+.content {
+    display: flex;
+    justify-content: center;
+}
+.innerContent {
+    width: 33%;
+    display: flex;
+    justify-content: center;
+}
+.innerContent > span > span > img {
+    width: 30px;
+    height: 30px;
+    display: flex;
+}
+#btnReset {
+    width: 100px;
     height: 40px;
+    font-size: 20px;
+}
+button:hover {
+    cursor: pointer;
+}
+.text {
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+}
+.btnLevel {
+    width: 180px;
+    height: 30px;
+    font-size: 17px;
 }

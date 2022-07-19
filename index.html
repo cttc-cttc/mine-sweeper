@@ -8,9 +8,31 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    
-    <div class="board">
-        <ul></ul>
+    <div id="container">
+        <div class="board">
+            <ul></ul>
+        </div>
+        <div class="content">
+            <div class="innerContent">
+                <button id="btnReset" onclick="reset()">reset</button>
+            </div>
+            <div class="innerContent">
+                <span class="text">
+                    <span id="mImg"></span>&nbsp;:&nbsp;
+                    <span id="mCnt"></span>&nbsp;/&nbsp;
+                    <span id="mNum"></span>
+                </span>
+            </div>
+            <div class="innerContent">
+                <span class="text" id="gameStatus"></span>
+            </div>
+        </div>
+        <br>
+        <div class="content">
+            <button class="btnLevel" onclick="level(1)">level 1</button>&nbsp;
+            <button class="btnLevel" onclick="level(2)">level 2</button>&nbsp;
+            <button class="btnLevel" onclick="level(3)">level 3</button>
+        </div>
     </div>
 
     <script src="./script.js"></script>
