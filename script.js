@@ -131,16 +131,27 @@ function leftClickMatrix(target, x, y) {
         target.style.background = '#A3B0A5'; // 회색
         const dirArr = new Array();
         let mCnt = 0;
-        mCnt += checkDirection(target, dirArr, x-1, y-1); // ↖
-        mCnt += checkDirection(target, dirArr, x  , y-1); // ↑
-        mCnt += checkDirection(target, dirArr, x+1, y-1); // ↗
-        mCnt += checkDirection(target, dirArr, x-1, y  ); // ←
-        mCnt += checkDirection(target, dirArr, x+1, y  ); // →
-        mCnt += checkDirection(target, dirArr, x-1, y+1); // ↙
-        mCnt += checkDirection(target, dirArr, x  , y+1); // ↓
-        mCnt += checkDirection(target, dirArr, x+1, y+1); // ↘
+        // mCnt += checkDirection(target, dirArr, x-1, y-1); // ↖
+        // mCnt += checkDirection(target, dirArr, x  , y-1); // ↑
+        // mCnt += checkDirection(target, dirArr, x+1, y-1); // ↗
+        // mCnt += checkDirection(target, dirArr, x-1, y  ); // ←
+        // mCnt += checkDirection(target, dirArr, x+1, y  ); // →
+        // mCnt += checkDirection(target, dirArr, x-1, y+1); // ↙
+        // mCnt += checkDirection(target, dirArr, x  , y+1); // ↓
+        // mCnt += checkDirection(target, dirArr, x+1, y+1); // ↘
+
+        var x_add = [-1, 0, 1];
+        var y_add = [-1, 0, 1];
+        for (let i=0; i<3; i++) {
+            for (let j=0; j<3; j++) {
+                if(x_add[i] != 0 || y_add[j] != 0) {
+                    // 클릭한 곳 기준 ↖ ← ↙ ↑ ↓ ↗ → ↘ 순으로 각 8방향의 지뢰 수 검사
+                    mCnt += checkDirection(target, dirArr, x + x_add[i], y + y_add[j]);
+                }
+            }
+        }
         target.classList.remove('matrix');
-        
+
         if(mCnt == 0) {
             dirArr.forEach(li => {
                 li.click();
